@@ -222,7 +222,7 @@ def start_mysql(task_content):
         update_status(deploy_task_info,deploy_status)
     else:
         print("启动mysql失败")
-        deploy_status = 2
+        deploy_status = 3
         update_status(deploy_task_info,deploy_status)
         write_log(deploy_task_info,"启动mysql失败")
 # 部署前准备
