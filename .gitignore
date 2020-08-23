@@ -5,13 +5,6 @@
 *.patch
 *.tmp
 
-# package ignore (optional)
-# *.jar
-# *.war
-# *.zip
-# *.tar
-# *.tar.gz
-
 *.pyc
 *.pid
 *.log
