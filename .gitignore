@@ -1,0 +1,22 @@
+# temp ignore
+*.log
+*.cache
+*.diff
+*.patch
+*.tmp
+
+# package ignore (optional)
+# *.jar
+# *.war
+# *.zip
+# *.tar
+# *.tar.gz
+
+*.pyc
+*.pid
+*.log
+__pycache__/
+*./__pycache__/
+*/__pycache__/
+__pycache__/*
+*/__pycache__/*

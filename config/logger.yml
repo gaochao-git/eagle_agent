@@ -1,0 +1,48 @@
+version: 1
+formatters:
+  simple:
+    format: '[%(process)d:%(thread)d:%(levelname)s:%(asctime)s:%(filename)s(%(lineno)d)] %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+  file:
+    class: logging.handlers.TimedRotatingFileHandler
+    formatter: simple
+    filename: /srv/eagle_agent/log/agent_logger.log
+    backupCount: 5
+    when: D
+    interval: 1
+  info_handler:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: simple
+    filename: /srv/eagle_agent/log/info.log
+    backupCount: 5
+    when: D
+    interval: 1
+    encoding: 'utf-8'
+  error_handler:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: ERROR
+    formatter: simple
+    filename: /srv/eagle_agent/log/error.log
+    backupCount: 8
+    when: D
+    interval: 1
+    encoding: 'utf-8'
+
+loggers:
+  simpleExample:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  agent_logger:
+    level: DEBUG
+    handlers: [error_handler,info_handler]
+    propagate: no
+root:
+  level: DEBUG
+  handlers: [console]
