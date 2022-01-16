@@ -33,7 +33,7 @@ host_name = socket.gethostname()
 connection = pymysql.connect(host='10.88.132.153',
                              user='dba_agent',
                              password='qsgXzYMkTx8WBcRE',
-                             db='dubai_agent',
+                             db='eagle_agent',
                              charset='utf8mb4',
                              port=3306,
                              cursorclass=pymysql.cursors.DictCursor)

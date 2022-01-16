@@ -57,9 +57,7 @@ logging.config.dictConfig(logger_config)
 logger = logging.getLogger('agent_logger')
 
 
-def daemonize(pidfile, *, stdin='/dev/null',
-              stdout='/dev/null',
-              stderr='/dev/null'):
+def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     if os.path.exists(pidfile):
         raise RuntimeError('Already running')
 
@@ -70,7 +68,7 @@ def daemonize(pidfile, *, stdin='/dev/null',
     except OSError as e:
         raise RuntimeError('fork #1 failed.')
 
-    # os.chdir('/') 这一步必须么?
+    os.chdir('/')
     os.umask(0)
     os.setsid()
     # Second fork (relinquish session leadership)
