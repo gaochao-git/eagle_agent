@@ -17,17 +17,26 @@ from importlib import import_module
 
 import yaml
 
-PROJECT_PATH = '/srv/eagle_agent/'
-PID_FILE = PROJECT_PATH + 'pid/agent_daemon.pid'
+PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__))).rstrip('/')
 sys.path.append(PROJECT_PATH)
 
 
 HOSTNAME = socket.gethostname()
 
-# 从项目配置文件获取eagle_agent依赖的后端数据库地址
-with open(os.path.join(os.path.dirname(__file__), PROJECT_PATH + 'config/eagle_agent.yml')) as f:
+# 读取项目配置
+with open(PROJECT_PATH + '/config/agent_config.yml') as f:
     eagle_agent_config = yaml.load(f, Loader=yaml.FullLoader)
-    agent_db_connect_info = eagle_agent_config['eagle_db_test']
+    # 获取数据库地址
+    agent_db_connect_info = eagle_agent_config['mysql_source']
+    # 获取日志路径
+    project_logdir = eagle_agent_config['logdir'].rstrip('/')
+    # 获取pid路径
+    project_piddir = eagle_agent_config['piddir'].rstrip('/')
+    # 如果路径不存在则创建
+    if not os.path.exists(project_logdir): os.makedirs(project_logdir)
+    if not os.path.exists(project_piddir): os.makedirs(project_piddir)
+    # 创建pid文件
+    PID_FILE = project_piddir + '/agent_daemon.pid'
 
 # 初始化数据库连接    
 def conn_mysql_instance(host, port, user, password, database):
@@ -45,18 +54,20 @@ def conn_mysql_instance(host, port, user, password, database):
         return None
 db_conn_agent = conn_mysql_instance(agent_db_connect_info['mysql_ip'], agent_db_connect_info['mysql_port'], agent_db_connect_info['mysql_user'],agent_db_connect_info['mysql_pass'],agent_db_connect_info['mysql_db'])
 
-# 获取日志配置文件
-with open(os.path.join(os.path.dirname(__file__), PROJECT_PATH + 'config/logger.yml')) as f:
+# 初始化日志
+with open(PROJECT_PATH + '/config/logger.yml') as f:
     try:
         logger_config = yaml.load(f, Loader=yaml.FullLoader)
-    except Exception:
-        logger_config = yaml.load(f)
-
-
+        logger_config['handlers']['info_handler']['filename'] = project_logdir + '/' + 'info.log'
+        logger_config['handlers']['error_handler']['filename'] = project_logdir + '/' + 'error.log'
+        logger_config['handlers']['file']['filename'] = project_logdir + '/' + 'agent_logger.log'
+    except Exception as e:
+        print(e)
 logging.config.dictConfig(logger_config)
 logger = logging.getLogger('agent_logger')
 
 
+# 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     if os.path.exists(pidfile):
         raise RuntimeError('Already running')
@@ -149,20 +160,19 @@ def init_logger():
     import logging.config
     import yaml
     # import logging.handlers
-    with open(os.path.join(os.path.dirname(__file__), PROJECT_PATH + 'config/logger.yml')) as f:
+    with open(PROJECT_PATH + 'config/logger.yml') as f:
         try:
             logger_config = yaml.load(f, Loader=yaml.FullLoader)
         except Exception:
             logger_config = yaml.load(f)
     logging.config.dictConfig(logger_config)
 
-
 def main():
     """这种方式到是使用了进程池的思想,但当任务比较多时,会不会导致后续任务不能及时执行?,或者说根据配置文件生成进程池内的进程数目?"""
-    init_logger()
+    #init_logger()
     logger.info("agent start run ")
     from concurrent.futures import ThreadPoolExecutor
-    with open(os.path.join(os.path.dirname(__file__), PROJECT_PATH + 'config/agent_config.yml')) as f:
+    with open(PROJECT_PATH + '/config/task.yml') as f:
         config_dict = yaml.load(f)
     thread_num = len(config_dict) if len(config_dict) < 20 else 20
     executor = ThreadPoolExecutor(thread_num)
@@ -183,14 +193,9 @@ def main():
 # 启动后台进程
 def daemonize_start():
     try:
-        log_path = PROJECT_PATH + 'log/'
-        if not os.path.isfile(log_path + 'daemon_success.log'):
-            os.mknod(log_path + 'daemon_success.log')
-        if not os.path.isfile(log_path + 'daemon_error.log'):
-            os.mknod(log_path + 'daemon_error.log')
-        daemonize(PID_FILE,
-                  stdout=log_path + 'daemon_success.log',
-                  stderr=log_path + 'daemon_error.log')
+        daemon_log = project_logdir + '/daemon.log'
+        if not os.path.isfile(daemon_log): os.mknod(daemon_log)
+        daemonize(PID_FILE, stdout=daemon_log, stderr=daemon_log)
     except RuntimeError as e:
         print(e, file=sys.stderr)
         raise SystemExit(1)

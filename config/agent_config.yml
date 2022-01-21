@@ -1,0 +1,8 @@
+logdir: /tmp/gaochao/log
+piddir: /tmp/gaochao/pid
+mysql_source:
+    mysql_ip: 127.0.0.1
+    mysql_user: root
+    mysql_port: 3306
+    mysql_db: eagle_agent
+    mysql_pass: fffjjj
