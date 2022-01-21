@@ -1,7 +1,7 @@
 import pymysql
 
 
-class Agent:
+class AgentDbSource:
     def __init__(self):
         self.mysql_host = '39.97.247.142'
         self.mysql_port = 3306
