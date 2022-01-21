@@ -12,11 +12,6 @@ import pymysql as db
 import requests
 import yaml
 
-
-with open('../config/eagle_agent.yml',mode='r') as f:
-    eagle_agent_config = yaml.load(f,Loader=yaml.FullLoader)
-    agent_db_connect_info = eagle_agent_config['eagle_db_test']
-
 logger = logging.getLogger('agent_logger')
 
 def conn_mysql_instance(host, port, user, password, database):
