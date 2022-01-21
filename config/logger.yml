@@ -11,7 +11,7 @@ handlers:
   file:
     class: logging.handlers.TimedRotatingFileHandler
     formatter: simple
-    filename: /srv/eagle_agent/log/agent_logger.log
+    filename: /tmp/agent_logger.log
     backupCount: 5
     when: D
     interval: 1
@@ -19,7 +19,7 @@ handlers:
     class: logging.handlers.TimedRotatingFileHandler
     level: INFO
     formatter: simple
-    filename: /srv/eagle_agent/log/info.log
+    filename: /tmp/info.log
     backupCount: 5
     when: D
     interval: 1
@@ -28,7 +28,7 @@ handlers:
     class: logging.handlers.TimedRotatingFileHandler
     level: ERROR
     formatter: simple
-    filename: /srv/eagle_agent/log/error.log
+    filename: /tmp/error.log
     backupCount: 8
     when: D
     interval: 1
