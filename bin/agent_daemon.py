@@ -69,6 +69,21 @@ logger = logging.getLogger('agent_logger')
 
 # 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+    """
+    判断进程是否存在(最好通过pid文件与进程进行双重判断)
+    1.pid文件存在
+        根据pid号从/proc判断pid号是否存在
+            pid号不存在--->进程被kill -9或者服务器宕机
+            pid号存在，判断cmdexe
+                process_cmd_info_list = open('/proc/pid号/cmdline', 'rb').read().split(b'\0')
+                match_cmd = process_cmd_info_list[1].decode('utf-8')
+                match_flag = process_cmd_info_list[2].decode('utf-8')
+                if re.findall('(agent_daemon)',match_cmd):
+                    服务启动中
+        文件是否存在,如果存在说明进程在运行中或者进程被kill -9或者服务器宕机
+    2.pid文件不存在
+        遍历/proc/所有进程号，并判断cmdline，防止多个任务重复启动
+    """
     if os.path.exists(pidfile):
         raise RuntimeError('Already running')
 
@@ -155,21 +170,9 @@ class Agent:
                 logger.exception(e)
                 logger.error("%s 执行失败" % self.module_name)
 
-# 初始化日志
-def init_logger():
-    import logging.config
-    import yaml
-    # import logging.handlers
-    with open(PROJECT_PATH + 'config/logger.yml') as f:
-        try:
-            logger_config = yaml.load(f, Loader=yaml.FullLoader)
-        except Exception:
-            logger_config = yaml.load(f)
-    logging.config.dictConfig(logger_config)
 
 def main():
     """这种方式到是使用了进程池的思想,但当任务比较多时,会不会导致后续任务不能及时执行?,或者说根据配置文件生成进程池内的进程数目?"""
-    #init_logger()
     logger.info("agent start run ")
     from concurrent.futures import ThreadPoolExecutor
     with open(PROJECT_PATH + '/config/task.yml') as f:
