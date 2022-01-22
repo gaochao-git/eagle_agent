@@ -151,7 +151,7 @@ def main():
     logger.info("agent start run ")
     from concurrent.futures import ThreadPoolExecutor
     with open(PROJECT_PATH + '/config/task.yml') as f:
-        config_dict = yaml.load(f)
+        config_dict = yaml.load(f, Loader=yaml.FullLoader)
     thread_num = len(config_dict) if len(config_dict) < 20 else 20
     executor = ThreadPoolExecutor(thread_num)
     loop = asyncio.get_event_loop()
