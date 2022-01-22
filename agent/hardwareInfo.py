@@ -9,8 +9,7 @@ import platform as pf
 
 import psutil as ps
 import pymysql as db
-import requests
-import yaml
+from utils.db_helper import DbHelper
 
 logger = logging.getLogger('agent_logger')
 
@@ -27,10 +26,6 @@ def conn_mysql_instance(host, port, user, password, database):
     except Exception as e:
         raise Exception('Can not build available connection!' + e)
         return None
-
-
-def create_remote_mysql_conn():
-    return conn_mysql_instance( agent_db_connect_info['mysql_ip'], agent_db_connect_info['mysql_port'], agent_db_connect_info['mysql_user'],agent_db_connect_info['mysql_pass'],agent_db_connect_info['mysql_db'])
 
 
 def domain_is_valid(domain):
@@ -116,58 +111,36 @@ def get_network_info():
                 all_network_info.append(network_info)
     return all_network_info
 
+
 def collect_all_info():
     # 获取各项基础信息
     os_info = get_os_info()
     host_name = os_info['host_name']
     disk_info = get_disk_info()
     network_info = get_network_info()
-    print(os_info)
-    print(disk_info)
-    print(network_info)
-    db_conn = create_remote_mysql_conn()
-    try:
-        with db_conn.cursor() as db_cursor:
-            # 服务器基础信息表插入语句
-            idc='bj10'
-            insert_general_sql = """
-                replace into hardware_general_info(idc,server_hostname,server_os,mem_total,mem_used,mem_available,l_cpu_size,p_cpu_size,boot_time)
-                values('{0}','{1}','{2}','{3}','{4}','{5}',{6},{7},'{8}')
-            """.format(idc, os_info['host_name'], os_info['linux_distribution'], os_info['mem_total'], os_info['mem_used'], os_info['mem_available'], os_info['l_cpu_count'],os_info['p_cpu_count'],os_info['boot_time'])
-            print(insert_general_sql)
-            # 插入最新查询的数据
-            db_cursor.execute(insert_general_sql)
+    # 服务器基础信息表插入语句
+    idc = 'bj10'
+    insert_general_sql = """
+        replace into hardware_general_info(idc,server_hostname,server_os,mem_total,mem_used,mem_available,l_cpu_size,p_cpu_size,boot_time)
+        values('{0}','{1}','{2}','{3}','{4}','{5}',{6},{7},'{8}')
+    """.format(idc, os_info['host_name'], os_info['linux_distribution'], os_info['mem_total'], os_info['mem_used'], os_info['mem_available'], os_info['l_cpu_count'],os_info['p_cpu_count'],os_info['boot_time'])
+    DbHelper.dml(insert_general_sql)
 
-            # 磁盘分区详情表插入语句
-            for item in disk_info:
-                insert_partition_sql = """
-                    replace into hardware_disk_detail(server_hostname,mount_point,part_path,part_total,part_used,part_free,
-                    part_usedper) values ('{0}','{1}','{2}',{3},{4},{5},{6})
-                """.format(host_name, item['part_mountpoint'], item['part_path'], item['part_total'],
-                           item['part_used'], item['part_free'], item['part_usedper'])
-                # 插入或更新数据
-                db_cursor.execute(insert_partition_sql)
-                #print(insert_partition_sql)
+    # 磁盘分区详情表插入语句
+    for item in disk_info:
+        insert_partition_sql = """
+            replace into hardware_disk_detail(server_hostname,mount_point,part_path,part_total,part_used,part_free,
+            part_usedper) values ('{0}','{1}','{2}',{3},{4},{5},{6})
+        """.format(host_name, item['part_mountpoint'], item['part_path'], item['part_total'],
+                   item['part_used'], item['part_free'], item['part_usedper'])
+        DbHelper.dml(insert_partition_sql)
 
-            # 网卡信息表插入语句
-            for item in network_info:
-                insert_network_sql = """
-                    replace into hardware_net_detail(server_hostname,net_card_name,net_addr_ip,net_speed) values ('{0}', '{1}', '{2}', '{3}')
-                """.format(host_name, item['net_card_name'], item['net_addr_ip'], item['net_speed'])
-                db_cursor.execute(insert_network_sql)
-
-        # 提交所有数据库变更
-        db_conn.commit()
-        logger.info("Agent execute success!")
-    except db.OperationalError as e:
-        logger.warning("SQL execute failed, Msg: ({0}, {1})".format(e.args[0], e.args[1]))
-        # 若执行失败，则所有变更都进行回滚
-        db_conn.rollback()
-    finally:
-        # 关闭游标和数据库连接
-        db_cursor.close()
-        db_conn.close()
-
+    # 网卡信息表插入语句
+    for item in network_info:
+        insert_network_sql = """
+            replace into hardware_net_detail(server_hostname,net_card_name,net_addr_ip,net_speed) values ('{0}', '{1}', '{2}', '{3}')
+        """.format(host_name, item['net_card_name'], item['net_addr_ip'], item['net_speed'])
+        DbHelper.dml(insert_network_sql)
 
 def main():
     collect_all_info()
