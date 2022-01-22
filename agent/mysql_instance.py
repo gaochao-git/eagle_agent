@@ -5,8 +5,7 @@ import pymysql
 import socket
 import os
 import re
-import logging.handlers
-logger = logging.getLogger('agent_logger')
+from bin.agent_daemon import logger
 # 获取本机mysql实例
 def get_mysql_running_port():
     running_port_list = []
