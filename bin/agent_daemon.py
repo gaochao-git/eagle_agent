@@ -9,21 +9,17 @@ import logging.config
 import socket
 import psutil
 import re
-import pymysql as db
 import os
 import signal
 import sys
 from functools import partial
 from importlib import import_module
-from utils.db_helper import DbHelper
-
 import yaml
 
+# 将执行文件所在目录的上层目录追加到包引用路径中,便于包引用
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__))).rstrip('/')
 sys.path.append(PROJECT_PATH)
-
-
-HOSTNAME = socket.gethostname()
+from utils.db_helper import DbHelper
 
 # 读取项目配置
 with open(PROJECT_PATH + '/config/agent_config.yml') as f:
@@ -116,6 +112,7 @@ def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/nu
 
 # 更改agent运行时间
 def agent_success_run(module):
+    HOSTNAME = socket.gethostname()
     sql = """
         update agent_config_info set update_time=CURRENT_TIMESTAMP 
         where host_name= '{hostname}' and command_name='{module}' and status = 'enable'
