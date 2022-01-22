@@ -12,7 +12,8 @@ import hashlib
 import json
 from shutil import copyfile
 from utils.db_helper import DbHelper
-from bin.agent_daemon import logger
+import logging
+logger = logging.getLogger('agent_logger')
 
 
 #定时上报已经安装的mysql端口,供页面展示可用端口

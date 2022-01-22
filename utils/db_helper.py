@@ -1,6 +1,4 @@
 import pymysql
-import logging
-logger = logging.getLogger('agent_logger')
 
 class DbHelper:
     def __init__(self):
@@ -22,7 +20,6 @@ class DbHelper:
             cursor.execute(sql)
             return {"status": "ok", "msg": "执行成功"}
         except Exception as e:
-            logger.exception(e)
             return {"status": "error", "msg": str(e)}
         finally:
             if cursor: cursor.close()
@@ -40,7 +37,6 @@ class DbHelper:
             rows = cursor.fetchall()
             return {"status": "ok", "msg": "执行成功", "data": rows}
         except Exception as e:
-            logger.exception(e)
             return {"status": "error", "msg": str(e)}
         finally:
             if cursor: cursor.close()

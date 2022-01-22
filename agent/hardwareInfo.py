@@ -4,12 +4,12 @@
 import time
 import os
 import collections
-import logging.handlers
 import platform as pf
-from bin.agent_daemon import logger
 import psutil as ps
 import pymysql as db
 from utils.db_helper import DbHelper
+import logging
+logger = logging.getLogger('agent_logger')
 db_op_obj = DbHelper()
 
 
