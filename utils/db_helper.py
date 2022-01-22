@@ -10,6 +10,7 @@ class DbHelper:
         self.mysql_pass = 'fffjjj'
         self.mysql_db = 'eagle_agent'
         self.cursorclass = pymysql.cursors.DictCursor
+
     def dml(self, sql):
         conn = None
         cursor = None
