@@ -1,18 +1,20 @@
 import pymysql
+import logging
+logger = logging.getLogger('agent_logger')
 
-
-class AgentDbSource:
+class DbHelper:
     def __init__(self):
         self.mysql_host = '39.97.247.142'
         self.mysql_port = 3306
         self.mysql_user = 'wthong'
         self.mysql_pass = 'fffjjj'
         self.mysql_db = 'eagle_agent'
-    def dml(sql):
+        self.cursorclass = pymysql.cursors.DictCursor
+    def dml(self, sql):
         try:
             conn = pymysql.connect(host=self.mysql_host, port=self.mysql_port, user=self.mysql_user,
                                    password=self.mysql_pass,database=self.mysql_db, charset='utf8')
-            cursor = con.cursor()
+            cursor = conn.cursor()
             cursor.execute(sql)
             conn.commit()
             return {"status": "ok", "msg": "执行成功"}
@@ -24,11 +26,11 @@ class AgentDbSource:
             if cursor: cursor.close()
             if conn: conn.close()
 
-    def find_all(sql):
+    def find_all(self, sql):
         try:
             conn = pymysql.connect(host=self.mysql_host, port=self.mysql_port, user=self.mysql_user,
                                    password=self.mysql_pass, database=self.mysql_db, charset='utf8',
-                                   cursorclass=db.cursors.DictCursor)
+                                   cursorclass=self.cursorclass)
             cursor = conn.cursor()
             cursor.execute(sql)
             rows = cursor.fetchall()

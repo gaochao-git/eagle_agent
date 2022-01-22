@@ -15,6 +15,7 @@ import signal
 import sys
 from functools import partial
 from importlib import import_module
+from utils.db_helper import DbHelper
 
 import yaml
 
@@ -51,21 +52,6 @@ with open(PROJECT_PATH + '/config/logger.yml') as f:
 logging.config.dictConfig(logger_config)
 logger = logging.getLogger('agent_logger')
 
-# 初始化数据库连接    
-def conn_mysql_instance(host, port, user, password, database):
-    try:
-        return db.connect(
-            host=host,
-            port=port,
-            user=user,
-            passwd=password,
-            db=database,
-            charset='utf8mb4',
-            cursorclass=db.cursors.DictCursor)
-    except Exception as e:
-        raise Exception('Can not build available connection!' + e)
-        return None
-db_conn_agent = conn_mysql_instance(agent_db_connect_info['mysql_ip'], agent_db_connect_info['mysql_port'], agent_db_connect_info['mysql_user'],agent_db_connect_info['mysql_pass'],agent_db_connect_info['mysql_db'])
 
 # 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
@@ -132,17 +118,11 @@ def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/nu
 
 # 更改agent运行时间
 def agent_success_run(module):
-   try:
-       with db_conn_agent.cursor() as db_cursor:
-           sql = " update agent_config_info set update_time=CURRENT_TIMESTAMP where host_name= '{hostname}' and command_name='{module}' and status = 'enable'".format(hostname=HOSTNAME, module=module)
-           db_cursor.execute(sql)
-           db_conn.commit()
-   except Exception as e:
-       db_conn_agent.rollback()
-       logger.error(e)
-   finally:
-       db_cursor.close()
-       db_conn_agent.close()
+    sql = """
+        update agent_config_info set update_time=CURRENT_TIMESTAMP 
+        where host_name= '{hostname}' and command_name='{module}' and status = 'enable'
+    """.format(hostname=HOSTNAME, module=module)
+    DbHelper.dml(sql)
 
 
 # agent运行类
@@ -163,7 +143,7 @@ class Agent:
                 logger.info("%s 开始执行" % self.module_name)
                 task = self.loop.run_in_executor(self.executor, partial(self.module.main, **self.param_dict))
                 await task
-                #agent_success_run(self.module_name)
+                agent_success_run(self.module_name)
                 logger.info("%s 执行成功" % self.module_name)
             except Exception as e:
                 logger.error(str(e))
