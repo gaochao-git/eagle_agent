@@ -34,7 +34,7 @@ loggers:
     propagate: no
   agent_logger:
     level: DEBUG
-    handlers: [error_handler,info_handler]
+    handlers: [info_handler]
     propagate: no
 root:
   level: DEBUG
