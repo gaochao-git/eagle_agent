@@ -11,7 +11,9 @@ import sys
 import hashlib
 import json
 from shutil import copyfile
+from utils.db_helper import DbHelper
 logger = logging.getLogger('agent_logger')
+
 
 #定时上报已经安装的mysql端口,供页面展示可用端口
 def report_mysql_port(host_ip):
@@ -30,14 +32,13 @@ def report_mysql_port(host_ip):
             print(e)   #不需要打印到日志,因为有些进程号是瞬间的,会误导
     for running_port in running_port_list:
         sql = "replace into deployed_mysql_port(host_ip,port) values('{}',{})".format(host_ip,running_port)
-        eagle_agent_dml_sql(sql)
+        DbHelper.dml(sql)
     # 从安装目录获取
     port_list = [3306,3307,3308,3309,3310,3311,3312,3313,3314,3315]
     for check_port in port_list:
         if os.path.exists('/data/{}'.format(check_port)) or os.path.exists('/data/mysql/multi/{}'.format(check_port)):
             sql = "replace into deployed_mysql_port(host_ip,port) values('{}',{})".format(host_ip,check_port)
-            print(sql)
-            eagle_agent_dml_sql(sql)
+            DbHelper.dml(sql)
 
 # 获取主机ip
 def get_ip():
@@ -48,38 +49,7 @@ def get_ip():
     finally:
         s.close()
     return ip
- 
 
-# eagle_agent dml sql
-def eagle_agent_dml_sql(sql):
-    try:
-        eagle_agent_connection = pymysql.connect(host='39.97.247.142', port=3306, user='wthong', password='fffjjj',database='eagle_agent', charset='utf8')
-        cursor = eagle_agent_connection.cursor()
-        cursor.execute(sql)
-        eagle_agent_connection.commit()
-    except Exception as e:
-        eagle_agent_connection.rollback()
-        print(e)
-        logger.error(e)
-    finally:
-        cursor.close()
-        eagle_agent_connection.close()
-# eagle_agent select sql
-def eagle_agent_select_sql(sql):
-    rows = {}
-    try:
-        eagle_agent_connection = pymysql.connect(host='39.97.247.142', port=3306, user='wthong', password='fffjjj',database='eagle_agent', charset='utf8',cursorclass=pymysql.cursors.DictCursor)
-        cursor = eagle_agent_connection.cursor()
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-    except Exception as e:
-        eagle_agent_connection.rollback()
-        print(e)
-        logger.error(e)
-    finally:
-        cursor.close()
-        eagle_agent_connection.close() 
-        return rows
 def get_disk_free_capacity():
     return 100
 
@@ -89,18 +59,18 @@ def write_log(deploy_task_info,log):
     host_ip = deploy_task_info[0]["host_ip"]
     port = deploy_task_info[0]["port"]
     insert_sql = "insert into deploy_mysql_instance_log(submit_uuid,host_ip,port,deploy_log) values('{}','{}','{}','{}')".format(submit_uuid,host_ip,port,log)
-    eagle_agent_dml_sql(insert_sql)
+    DbHelper.dml(insert_sql)
 
 # 更改状表状态
 def update_status(deploy_task_info,deploy_status):
     submit_uuid = deploy_task_info[0]["submit_uuid"]
     update_sql = "update deploy_mysql_instance set deploy_status={} where submit_uuid='{}'".format(deploy_status,submit_uuid)
     if deploy_status == 3:
-        eagle_agent_dml_sql(update_sql)
+        DbHelper.dml(update_sql)
     elif deploy_status == 2:
-        eagle_agent_dml_sql(update_sql)
+        DbHelper.dml(update_sql)
     elif deploy_status == 1:
-        eagle_agent_dml_sql(update_sql)
+        DbHelper.dml(update_sql)
 
 # 解压文件
 def tar_zxf(deploy_task_info,fname,extract_target_dir):
@@ -272,21 +242,22 @@ def download_package(deploy_task_info,dowload_base_url,fname,extract_target_dir)
         raise Exception("载压缩包失败,退出此次任务")
 # 获取本机任务
 def get_task_info(host_ip):
-    print("开始获取任务")
+    # 开始获取任务
     deploy_info_sql = "select submit_uuid,host_ip,port,deploy_status,deploy_archit,deploy_env,deploy_other_param from deploy_mysql_instance where host_ip='{}' and deploy_status=0 and timestampdiff(second,ctime,now())<86400 limit 1" .format(host_ip)
-    deploy_task_info = eagle_agent_select_sql(deploy_info_sql)
-    if len(deploy_task_info) <= 0:
-        print("没有获取到部署任务")
-        return False
+    ret = DbHelper.find_all(deploy_info_sql)
+    if ret['status'] != "ok": return False
+    elif len(ret['data']) == 0: return False
     else:
-        print("获取到部署任务")
+        deploy_task_info = ret['data']
         log = "获取到部署任务"
         write_log(deploy_task_info,log)
         package_info_sql = "select pacakage_url,package_name,package_md5 from deploy_package_info where package_name='nucc_mysql.tar.gz'"
-        package_info = eagle_agent_select_sql(package_info_sql)
-        if len(package_info) <=0:
-            raise "没有获取到部安装包"
-        return {"task":"yes","deploy_task_info":deploy_task_info,'package_info':package_info}
+        ret = DbHelper.find_all(package_info_sql)
+        if ret['status'] == "ok":
+            if len(ret['data']) <=0: raise "没有获取到部安装包"
+            package_info = ret['data']
+            return {"task":"yes","deploy_task_info":deploy_task_info,'package_info':package_info}
+
 def main():
     host_ip = get_ip()
     report_mysql_port(host_ip)
