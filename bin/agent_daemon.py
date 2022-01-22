@@ -27,13 +27,11 @@ HOSTNAME = socket.gethostname()
 
 # 读取项目配置
 with open(PROJECT_PATH + '/config/agent_config.yml') as f:
-    eagle_agent_config = yaml.load(f, Loader=yaml.FullLoader)
-    # 获取数据库地址
-    agent_db_connect_info = eagle_agent_config['mysql_source']
+    agent_config = yaml.load(f, Loader=yaml.FullLoader)
     # 获取日志路径
-    project_logdir = eagle_agent_config['logdir'].rstrip('/')
+    project_logdir = agent_config['logdir'].rstrip('/')
     # 获取pid路径
-    project_piddir = eagle_agent_config['piddir'].rstrip('/')
+    project_piddir = agent_config['piddir'].rstrip('/')
     # 如果路径不存在则创建
     if not os.path.exists(project_logdir): os.makedirs(project_logdir)
     if not os.path.exists(project_piddir): os.makedirs(project_piddir)
