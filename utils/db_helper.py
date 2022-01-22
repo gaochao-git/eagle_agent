@@ -6,7 +6,7 @@ class DbHelper:
     def __init__(self):
         self.mysql_host = '47.104.2.74'
         self.mysql_port = 3306
-        self.mysql_user = 'root'
+        self.mysql_user = 'gaochao'
         self.mysql_pass = 'fffjjj'
         self.mysql_db = 'eagle_agent'
         self.cursorclass = pymysql.cursors.DictCursor
