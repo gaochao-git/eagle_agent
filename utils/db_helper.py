@@ -20,7 +20,7 @@ class DbHelper:
             cursor.execute(sql)
             return {"status": "ok", "msg": "执行成功"}
         except Exception as e:
-            return {"status": "error", "msg": str(e)}
+            return {"status": "error", "msg": e}
         finally:
             if cursor: cursor.close()
             if conn: conn.close()
@@ -37,7 +37,7 @@ class DbHelper:
             rows = cursor.fetchall()
             return {"status": "ok", "msg": "执行成功", "data": rows}
         except Exception as e:
-            return {"status": "error", "msg": str(e)}
+            return {"status": "error", "msg": e}
         finally:
             if cursor: cursor.close()
             if conn: conn.close()
