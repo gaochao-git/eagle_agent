@@ -39,6 +39,18 @@ with open(PROJECT_PATH + '/config/agent_config.yml') as f:
     # 创建pid文件
     PID_FILE = project_piddir + '/agent_daemon.pid'
 
+# 初始化日志
+with open(PROJECT_PATH + '/config/logger.yml') as f:
+    try:
+        logger_config = yaml.load(f, Loader=yaml.FullLoader)
+        logger_config['handlers']['info_handler']['filename'] = project_logdir + '/' + 'info.log'
+        logger_config['handlers']['error_handler']['filename'] = project_logdir + '/' + 'error.log'
+        logger_config['handlers']['file']['filename'] = project_logdir + '/' + 'agent_logger.log'
+    except Exception as e:
+        print(e)
+logging.config.dictConfig(logger_config)
+logger = logging.getLogger('agent_logger')
+
 # 初始化数据库连接    
 def conn_mysql_instance(host, port, user, password, database):
     try:
@@ -54,19 +66,6 @@ def conn_mysql_instance(host, port, user, password, database):
         raise Exception('Can not build available connection!' + e)
         return None
 db_conn_agent = conn_mysql_instance(agent_db_connect_info['mysql_ip'], agent_db_connect_info['mysql_port'], agent_db_connect_info['mysql_user'],agent_db_connect_info['mysql_pass'],agent_db_connect_info['mysql_db'])
-
-# 初始化日志
-with open(PROJECT_PATH + '/config/logger.yml') as f:
-    try:
-        logger_config = yaml.load(f, Loader=yaml.FullLoader)
-        logger_config['handlers']['info_handler']['filename'] = project_logdir + '/' + 'info.log'
-        logger_config['handlers']['error_handler']['filename'] = project_logdir + '/' + 'error.log'
-        logger_config['handlers']['file']['filename'] = project_logdir + '/' + 'agent_logger.log'
-    except Exception as e:
-        print(e)
-logging.config.dictConfig(logger_config)
-logger = logging.getLogger('agent_logger')
-
 
 # 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
