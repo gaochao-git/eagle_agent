@@ -8,13 +8,6 @@ handlers:
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
-  file:
-    class: logging.handlers.TimedRotatingFileHandler
-    formatter: simple
-    filename: /tmp/agent_logger.log
-    backupCount: 5
-    when: D
-    interval: 1
   info_handler:
     class: logging.handlers.TimedRotatingFileHandler
     level: INFO

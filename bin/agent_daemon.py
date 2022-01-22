@@ -41,7 +41,6 @@ with open(PROJECT_PATH + '/config/logger.yml') as f:
         logger_config = yaml.load(f, Loader=yaml.FullLoader)
         logger_config['handlers']['info_handler']['filename'] = project_logdir + '/' + 'info.log'
         logger_config['handlers']['error_handler']['filename'] = project_logdir + '/' + 'error.log'
-        logger_config['handlers']['file']['filename'] = project_logdir + '/' + 'agent_logger.log'
     except Exception as e:
         print(e)
 logging.config.dictConfig(logger_config)
