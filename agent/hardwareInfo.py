@@ -125,7 +125,8 @@ def collect_all_info():
         replace into hardware_general_info(idc,server_hostname,server_os,mem_total,mem_used,mem_available,l_cpu_size,p_cpu_size,boot_time)
         values('{0}','{1}','{2}','{3}','{4}','{5}',{6},{7},'{8}')
     """.format(idc, os_info['host_name'], os_info['linux_distribution'], os_info['mem_total'], os_info['mem_used'], os_info['mem_available'], os_info['l_cpu_count'],os_info['p_cpu_count'],os_info['boot_time'])
-    db_op_obj.dml(insert_general_sql)
+    ret = db_op_obj.dml(insert_general_sql)
+    if ret['status'] != "ok": logger.exception(ret['msg'])
 
     # 磁盘分区详情表插入语句
     for item in disk_info:
@@ -134,14 +135,16 @@ def collect_all_info():
             part_usedper) values ('{0}','{1}','{2}',{3},{4},{5},{6})
         """.format(host_name, item['part_mountpoint'], item['part_path'], item['part_total'],
                    item['part_used'], item['part_free'], item['part_usedper'])
-        db_op_obj.dml(insert_partition_sql)
+        ret = db_op_obj.dml(insert_partition_sql)
+        if ret['status'] != "ok": logger.exception(ret['msg'])
 
     # 网卡信息表插入语句
     for item in network_info:
         insert_network_sql = """
             replace into hardware_net_detail(server_hostname,net_card_name,net_addr_ip,net_speed) values ('{0}', '{1}', '{2}', '{3}')
         """.format(host_name, item['net_card_name'], item['net_addr_ip'], item['net_speed'])
-        db_op_obj.dml(insert_network_sql)
+        ret = db_op_obj.dml(insert_network_sql)
+        if ret['status'] != "ok": logger.exception(ret['msg'])
 
 def main():
     collect_all_info()
