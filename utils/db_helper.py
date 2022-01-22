@@ -4,7 +4,7 @@ logger = logging.getLogger('agent_logger')
 
 class DbHelper:
     def __init__(self):
-        self.mysql_host = '39.97.247.142'
+        self.mysql_host = '47.104.2.74'
         self.mysql_port = 3306
         self.mysql_user = 'wthong'
         self.mysql_pass = 'fffjjj'
