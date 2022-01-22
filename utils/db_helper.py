@@ -16,13 +16,12 @@ class DbHelper:
         cursor = None
         try:
             conn = pymysql.connect(host=self.mysql_host, port=self.mysql_port, user=self.mysql_user,
-                                   password=self.mysql_pass,database=self.mysql_db, charset='utf8')
+                                   password=self.mysql_pass,database=self.mysql_db, charset='utf8',
+                                   autocommit=True)
             cursor = conn.cursor()
             cursor.execute(sql)
-            conn.commit()
             return {"status": "ok", "msg": "执行成功"}
         except Exception as e:
-            conn.rollback()
             logger.exception(e)
             return {"status": "error", "msg": str(e)}
         finally:
