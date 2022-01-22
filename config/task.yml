@@ -1,4 +1,2 @@
 hardwareInfo: {command_name: hardwareInfo, interval: 10, package: agent}
-mysql_instance: {command_name: mysql_instance, interval: 10, package: agent}
-deploy_mysql_instance: {command_name: deploy_mysql_instance, interval: 5, package: agent}
 version: 1
