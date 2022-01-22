@@ -20,6 +20,7 @@ import yaml
 PROJECT_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__))).rstrip('/')
 sys.path.append(PROJECT_PATH)
 from utils.db_helper import DbHelper
+db_op_obj = DbHelper()
 
 # 读取项目配置
 with open(PROJECT_PATH + '/config/agent_config.yml') as f:
@@ -117,7 +118,7 @@ def agent_success_run(module):
         update agent_config_info set update_time=CURRENT_TIMESTAMP 
         where host_name= '{hostname}' and command_name='{module}' and status = 'enable'
     """.format(hostname=HOSTNAME, module=module)
-    DbHelper.dml(sql)
+    db_op_obj.dml(sql)
 
 
 # agent运行类
