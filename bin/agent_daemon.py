@@ -7,7 +7,7 @@ import atexit
 import logging
 import logging.config
 import socket
-
+import psutil
 import pymysql as db
 import os
 import signal
@@ -70,22 +70,19 @@ logger = logging.getLogger('agent_logger')
 # 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     """
-    判断进程是否存在(最好通过pid文件与进程进行双重判断)
-    1.pid文件存在
-        根据pid号从/proc判断pid号是否存在
-            pid号不存在--->进程被kill -9或者服务器宕机
-            pid号存在，判断cmdexe
-                process_cmd_info_list = open('/proc/pid号/cmdline', 'rb').read().split(b'\0')
-                match_cmd = process_cmd_info_list[1].decode('utf-8')
-                match_flag = process_cmd_info_list[2].decode('utf-8')
-                if re.findall('(agent_daemon)',match_cmd):
-                    服务启动中
-        文件是否存在,如果存在说明进程在运行中或者进程被kill -9或者服务器宕机
+    判断进程是否存在(通过进程进行判断,pid文件判断太简单容易误判)
     2.pid文件不存在
         遍历/proc/所有进程号，并判断cmdline，防止多个任务重复启动
     """
-    if os.path.exists(pidfile):
-        raise RuntimeError('Already running')
+    pids = psutil.pids()
+    for pid in pids:
+        try:
+            process_cmdline_info_list = psutil.Process(pid)
+            match_cmd = process_cmdline_info_list[1].decode('utf-8')
+            if re.findall('(agent_daemon.py)', match_cmd):
+                raise RuntimeError('Already running')
+        except Exception as e:
+            pass  # 不需要打印到日志,因为有些进程号是瞬间的,会误导
 
     # First fork (detaches from parent)
     try:
