@@ -139,7 +139,7 @@ class Agent:
                 task = self.loop.run_in_executor(self.executor, partial(self.module.main, **self.param_dict))
                 await task
                 agent_success_run(self.module_name)
-                logger.info("%s 执行成功" % self.module_name)
+                logger.info("%s 执行完成" % self.module_name)
             except Exception as e:
                 logger.error(str(e))
                 logger.exception(e)
