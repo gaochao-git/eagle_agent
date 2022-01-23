@@ -178,14 +178,46 @@ def daemonize_start():
         print(e, file=sys.stderr)
         raise SystemExit(1)
 
+
 # 停止后台进程
 def daemonize_stop():
+    """
+    不能读取到pid文件里面的pid就去kill,如果该pid进程异常挂掉,里面的进程号有可能时别的进程的,
+    直接kill会把别的进程kill掉,出现大故障
+    匹配不到pid文件,并不代表该进程已经停止,需要通过process判断
+    """
     if os.path.exists(PID_FILE):
         with open(PID_FILE) as f:
-            os.kill(int(f.read()), signal.SIGTERM)
+            pid = int(f.read())
+            p = psutil.Process(pid)
+            process_cmdline_info_list = p.cmdline()
+            match_cmd = process_cmdline_info_list[1]
+            if re.findall('(agent_daemon)', match_cmd):
+                os.kill(pid, signal.SIGTERM)
+            else:
+                print("pidfile中pid与匹配到的pid不是一个进程,退出操作", file=sys.stderr)
+                raise SystemExit(1)
     else:
-        print('Not running', file=sys.stderr)
-        raise SystemExit(1)
+        pids = psutil.pids()
+        for pid in pids:
+            match_cmd = None
+            kill_flag = False
+            try:
+                p = psutil.Process(pid)
+                process_cmdline_info_list = p.cmdline()
+                match_cmd = process_cmdline_info_list[1]
+            except IndexError:
+                pass  # 不需要打印到日志,因为有些进程号是瞬间的,会误导
+            except Exception as e:
+                print(e)
+            if match_cmd and re.findall('(agent_daemon)', match_cmd):
+                kill_flag = True
+                break
+        if kill_flag:
+            os.kill(pid, signal.SIGTERM)
+        else:
+            print('Not running', file=sys.stderr)
+            raise SystemExit(1)
 
 
 if __name__ == '__main__':
