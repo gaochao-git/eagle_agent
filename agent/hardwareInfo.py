@@ -7,9 +7,9 @@ import collections
 import platform as pf
 import psutil as ps
 import pymysql as db
-from utils.db_helper import DbHelper
 import logging
 logger = logging.getLogger('agent_logger')
+from utils.db_helper import DbHelper
 db_op_obj = DbHelper()
 
 

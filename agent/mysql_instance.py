@@ -7,6 +7,10 @@ import os
 import re
 import logging
 logger = logging.getLogger('agent_logger').getChild(__name__)
+from utils.db_helper import DbHelper
+db_op_obj = DbHelper()
+
+
 # 获取本机mysql实例
 def get_mysql_running_port():
     running_port_list = []
