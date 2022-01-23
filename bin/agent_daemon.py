@@ -199,7 +199,10 @@ def daemonize_stop():
                     print("pidfile中pid与匹配到的pid不是一个进程,退出操作", file=sys.stderr)
                     raise SystemExit(1)
         except psutil.NoSuchProcess:
-            print("没有匹配到进程号", file=sys.stderr)
+            print("没有匹配到进程号(%d)" % pid, file=sys.stderr)
+            raise SystemExit(1)
+        except Exception as e:
+            print(str(e), file=sys.stderr)
             raise SystemExit(1)
     else:
         pids = psutil.pids()
