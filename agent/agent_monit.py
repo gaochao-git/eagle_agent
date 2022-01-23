@@ -7,7 +7,7 @@ import os
 import collections
 import platform as pf
 import psutil
-import pymysql as db
+import math
 import logging
 logger = logging.getLogger('agent_logger')
 from utils.db_helper import DbHelper
@@ -27,8 +27,10 @@ def get_cpu_info():
     """
     获取cpu占用率
     """
-    cpu = psutil.Process(os.getpid()).cpu_percent(interval=1)
-    logger.info("agent占用CPU资源%{:.2f}".format(cpu))
+    l_cpu_count = psutil.cpu_count()
+    cpu_percent = psutil.Process(os.getpid()).cpu_percent(interval=1)
+    cpu_percent_total = int(math.ceil(cpu_percent)) / (l_cpu_count * 100) * 100
+    logger.info("agent占用CPU资源%{:.2f},占用总CPU资源%{:.2f}".format(cpu_percent, cpu_percent_total))
 
 
 def get_disk_info():
