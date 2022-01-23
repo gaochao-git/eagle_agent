@@ -9,7 +9,7 @@ import psutil as ps
 import pymysql as db
 from utils.db_helper import DbHelper
 import logging
-logger = logging.getLogger('agent_logger')
+logger = logging.getLogger('agent_logger').getChild(__name__)
 db_op_obj = DbHelper()
 
 
