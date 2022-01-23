@@ -26,7 +26,7 @@ def get_cpu_info():
     """
     获取cpu占用率
     """
-    cpu = psutil.Process(os.getpid())
+    cpu = psutil.Process(os.getpid()).cpu_percent()
     logger.info("agent占用CPU资源%s" % cpu)
 
 
