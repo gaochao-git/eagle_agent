@@ -189,8 +189,12 @@ def kill_pid(pid):
     os.kill(pid, signal.SIGTERM)
     for i in range(100):
         try:
-            time.sleep(0.1)
-            os.kill(pid, 0)
+            if i <= 98:
+                time.sleep(0.1)
+                os.kill(pid, 0)
+            else:
+                logger.warning("stop超时,强制kill")
+                os.kill(pid, signal.SIGKILL)
         except OSError:
             break
 
