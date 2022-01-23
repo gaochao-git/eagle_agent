@@ -209,7 +209,7 @@ def daemonize_stop():
         for pid in pids:
             match_cmd = None
             match_type = None
-            kill_flag = False
+            running_flag = False
             try:
                 p = psutil.Process(pid)
                 process_cmdline_info_list = p.cmdline()
@@ -220,9 +220,9 @@ def daemonize_stop():
             except Exception as e:
                 print(e)
             if match_cmd and re.findall('(agent_daemon)', match_cmd) and match_type == "stop":
-                kill_flag = True
+                running_flag = True
                 break
-        if kill_flag:
+        if running_flag:
             os.kill(pid, signal.SIGTERM)
         else:
             print('Not running', file=sys.stderr)
