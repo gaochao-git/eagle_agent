@@ -8,6 +8,7 @@ import logging
 import logging.config
 import socket
 import psutil
+import time
 import re
 import os
 import signal
@@ -181,6 +182,19 @@ def daemonize_start():
         raise SystemExit(1)
 
 
+def kill_pid(pid):
+    """
+    阻塞进程直到进程被kill掉
+    """
+    os.kill(pid, signal.SIGTERM)
+    for i in range(100):
+        try:
+            time.sleep(0.1)
+            os.kill(pid, 0)
+        except OSError:
+            break
+
+
 def daemonize_stop():
     """
     停止后台守护进程
@@ -195,7 +209,7 @@ def daemonize_stop():
                 process_cmdline_info_list = p.cmdline()
                 match_cmd = process_cmdline_info_list[1]
                 if re.findall('(agent_daemon)', match_cmd):
-                    os.kill(pid, signal.SIGTERM)
+                    kill_pid(pid)
                 else:
                     print("pidfile中pid与匹配到的pid不是一个进程,退出操作", file=sys.stderr)
                     raise SystemExit(1)
@@ -224,7 +238,7 @@ def daemonize_stop():
                 running_flag = True
                 break
         if running_flag:
-            os.kill(pid, signal.SIGTERM)
+            kill_pid(pid)
         else:
             print('Not running', file=sys.stderr)
             raise SystemExit(1)

@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 # gaochao
 # 监控agent资源,防止agent占用服务器过多资源,给出预警或者自杀agent守护进程
-import time
 import os
-import collections
-import platform as pf
 import psutil
+import signal
 import math
 import logging
 logger = logging.getLogger('agent_logger')
@@ -31,6 +29,16 @@ def get_cpu_info():
     cpu_percent = psutil.Process(os.getpid()).cpu_percent(interval=1)
     cpu_percent_total = int(math.ceil(cpu_percent)) / (l_cpu_count * 100) * 100
     logger.info("agent占用CPU资源%{:.2f},占用总CPU资源%{:.2f}".format(cpu_percent, cpu_percent_total))
+    if int(cpu_percent_total) > 20:
+        logger.error("当前CPU为{:.2f},占总量{:.2f},CPU超过限定值,agent自杀".format(cpu_percent, cpu_percent_total))
+        kill_agent()
+
+
+def kill_agent():
+    """
+    自杀agent,保护系统
+    """
+    os.kill(os.getpid(), signal.SIGKILL)
 
 
 def get_disk_info():
