@@ -20,15 +20,15 @@ def get_mem_info():
     """
     mem = int(psutil.Process(os.getpid()).memory_info().rss / 1024/ 1024)
     mem_percent = psutil.Process(os.getpid()).memory_percent()
-    logger.info("agent占用内存资源%d M,占总内存%%.2f" % (mem, mem_percent))
+    logger.info("agent占用内存资源%d M,占总内存%{:.2f}" % (mem, mem_percent))
 
 
 def get_cpu_info():
     """
     获取cpu占用率
     """
-    cpu = psutil.Process(os.getpid()).cpu_percent()
-    logger.info("agent占用CPU资源%s" % cpu)
+    cpu = psutil.Process(os.getpid()).cpu_percent(interval=1)
+    logger.info("agent占用CPU资源%{:.2f}".format(cpu))
 
 
 def get_disk_info():
