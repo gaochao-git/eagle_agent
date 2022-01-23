@@ -230,18 +230,14 @@ def daemonize_stop():
 
 
 if __name__ == '__main__':
-
     if len(sys.argv) != 2:
         print('Usage: {} [start|stop]'.format(sys.argv[0]), file=sys.stderr)
         raise SystemExit(1)
-
     if sys.argv[1] == 'start':
         daemonize_start()
         main()
-
     elif sys.argv[1] == 'stop':
         daemonize_stop()
-
     else:
         print('Unknown command {!r}'.format(sys.argv[1]), file=sys.stderr)
         raise SystemExit(1)
