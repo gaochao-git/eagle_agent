@@ -187,16 +187,20 @@ def daemonize_stop():
     匹配不到pid文件,并不代表该进程已经停止,需要通过process判断
     """
     if os.path.exists(PID_FILE):
-        with open(PID_FILE) as f:
-            pid = int(f.read())
-            p = psutil.Process(pid)
-            process_cmdline_info_list = p.cmdline()
-            match_cmd = process_cmdline_info_list[1]
-            if re.findall('(agent_daemon)', match_cmd):
-                os.kill(pid, signal.SIGTERM)
-            else:
-                print("pidfile中pid与匹配到的pid不是一个进程,退出操作", file=sys.stderr)
-                raise SystemExit(1)
+        try:
+            with open(PID_FILE) as f:
+                pid = int(f.read())
+                p = psutil.Process(pid)
+                process_cmdline_info_list = p.cmdline()
+                match_cmd = process_cmdline_info_list[1]
+                if re.findall('(agent_daemon)', match_cmd):
+                    os.kill(pid, signal.SIGTERM)
+                else:
+                    print("pidfile中pid与匹配到的pid不是一个进程,退出操作", file=sys.stderr)
+                    raise SystemExit(1)
+        except psutil.NoSuchProcess:
+            print("没有匹配到进程号", file=sys.stderr)
+            raise SystemExit(1)
     else:
         pids = psutil.pids()
         for pid in pids:
