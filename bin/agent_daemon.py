@@ -208,18 +208,16 @@ def daemonize_stop():
         pids = psutil.pids()
         for pid in pids:
             match_cmd = None
-            match_type = None
             running_flag = False
             try:
                 p = psutil.Process(pid)
                 process_cmdline_info_list = p.cmdline()
                 match_cmd = process_cmdline_info_list[1]
-                match_type = process_cmdline_info_list[2]
             except IndexError:
                 pass  # 不需要打印到日志,因为有些进程号是瞬间的,会误导
             except Exception as e:
                 print(e)
-            if match_cmd and re.findall('(agent_daemon)', match_cmd) and match_type == "stop":
+            if match_cmd and re.findall('(agent_daemon)', match_cmd) and p.pid != os.getpid():
                 running_flag = True
                 break
         if running_flag:
