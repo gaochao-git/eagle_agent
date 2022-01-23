@@ -1,2 +1,3 @@
+agent_monit: {command_name: agent_monit, interval: 1, package: agent}
 hardwareInfo: {command_name: hardwareInfo, interval: 10, package: agent}
 version: 1

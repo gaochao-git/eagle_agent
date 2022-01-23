@@ -99,7 +99,7 @@ def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/nu
     with open(pidfile, 'w') as f:
         print(os.getpid(), file=f)
 
-    # Arrange to have the PID file removed on exit/signal
+    # 程序退出时的回调函数
     atexit.register(lambda: os.remove(pidfile))
 
     # Signal handler for termination (required)
