@@ -19,7 +19,8 @@ def get_mem_info():
     获取内存信息,大小单位为M
     """
     mem = int(psutil.Process(os.getpid()).memory_info().rss / 1024/ 1024)
-    logger.info("agent占用内存资源%d M" % mem)
+    mem_percent = psutil.Process(os.getpid()).memory_percent()
+    logger.info("agent占用内存资源%d M,占总内存%s" % (mem, mem_percent))
 
 
 def get_cpu_info():
