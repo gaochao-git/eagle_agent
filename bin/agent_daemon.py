@@ -47,11 +47,10 @@ logging.config.dictConfig(logger_config)
 logger = logging.getLogger('agent_logger')
 
 
-# 后台启动任务
 def daemonize(pidfile, *, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
     """
-    判断进程是否存在(通过进程进行判断,pid文件判断太简单容易误判)
-    遍历/proc/所有进程号，并判断cmdline，防止多个任务重复启动，判断时要忽略自己
+    启动后台守护进程
+    遍历/proc/所有进程号，并判断cmdline，防止多个任务重复启动，判断时要忽略自己，直接通过pid文件判断太简单容易误判
     """
     pids = psutil.pids()
     for pid in pids:
@@ -168,8 +167,11 @@ def main():
             Agent(module, module_info['command_name'], module_info['interval'], loop, executor,module_info.get('param', dict())))
     loop.run_forever()
 
-# 启动后台进程
+
 def daemonize_start():
+    """
+    启动后台守护进程
+    """
     try:
         daemon_log = project_logdir + '/daemon.log'
         if not os.path.isfile(daemon_log): os.mknod(daemon_log)
@@ -179,12 +181,11 @@ def daemonize_start():
         raise SystemExit(1)
 
 
-# 停止后台进程
 def daemonize_stop():
     """
-    不能读取到pid文件里面的pid就去kill,如果该pid进程异常挂掉,里面的进程号有可能时别的进程的,
-    直接kill会把别的进程kill掉,出现大故障
-    匹配不到pid文件,并不代表该进程已经停止,需要通过process判断
+    停止后台守护进程
+    1.不能读取到pid文件里面的pid就去kill,如果该pid进程异常挂掉,里面的进程号有可能时别的进程的,直接kill会把别的进程kill掉,出现大故障
+    2.匹配不到pid文件,并不代表该进程已经停止,需要通过process判断
     """
     if os.path.exists(PID_FILE):
         try:
